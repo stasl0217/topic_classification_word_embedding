@@ -47,33 +47,38 @@ def queryTagMe(text):
     return entities
 
 
-documents = data_fetcher.DataFetcher().get_data()  # balanced
+# documents: plain text, every element accords to one article
+# cate: the category index of every document
+[documents, cate] = data_fetcher.DataFetcher().get_classified_training_data()  # balanced
 
-print(len(documents))
+N = len(documents)
+print("number of documents" + str(N))
+M = 20  # number of categories  # this may need to be CHANGED for IMBALANCED DATASET
+print("number of categories" + str(M))
 
-# # skewed
-# bc = ['alt.atheism','rec.sport.baseball','talk.politics.guns']
-# ic = ['sci.space']
-# d = .7
-# ### initialize DataFetcher and get the documents
-# df2 = data_fetcher.DataFetcher(bc,ic,d)
-with open("tags_full.txt","a") as f:
-    for i in range(0,len(documents)):
-        text=documents[i]
-        # query text can't be too long
-        size = 5000
-        length = len(text)
-        for i in range(0, length - 1, size):
-            # may cut some words. could be fixed if bette r methods available
-            small_text = text[i:min(i + size, length - 1)].lstrip()
-            try:
-                entities = queryTagMe(small_text)
-                print(entities)
-                for e in entities:
-                    f.write(e+'\t')
-            except:
-                with open("exceptions.txt","a") as fe:
-                    fe.write(small_text)
-                    fe.write(str(sys.exc_info()[0]))
+for i in range(0, len(documents)):
+    with open("tags_full.txt", "a") as f:
+        with open("id_full.txt", "a") as f_id:
+            with open("cate_full.txt", "a") as f_cate:
+                doc = documents[i]
+                doc_cate = cate[i]  # query text can't be too long, break it and then query
+                size = 5000
+                length = len(doc)
+                for j in range(0, length - 1, size):
+                    # may cut some words. could be fixed if bette r methods available
+                    small_text = doc[j:min(j + size, length - 1)].lstrip()
+                    try:
+                        entities = queryTagMe(small_text)
+                        print(entities)
+                        for e in entities:
+                            f.write(e + '\t')
+                    except:
+                        with open("exceptions.txt", "a") as fe:
+                            fe.write(str(j) + '\n')
+                            fe.write(str(sys.exc_info()[0]))
+                            fe.write(small_text)
+                            fe.write('\n\n\n')
 
-        f.write('\n')
+                f.write('\n')
+                f_id.write(str(i) + '\n')
+                f_cate.write(str(doc_cate) + '\n')
